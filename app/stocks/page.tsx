@@ -72,33 +72,23 @@ export default function StocksPage() {
 
   const handleSubmit = async (values: any) => {
     try {
-      let res: Response | null = null;
       if (mode === 'create') {
-        res = await fetch('/api/stocks', { method: 'POST', body: JSON.stringify(values), headers: { 'Content-Type': 'application/json' } });
-        if (!res.ok) {
-          const result = await res.json().catch(() => null);
-          throw new Error(result?.error || 'Lỗi khi thêm nhập kho');
-        }
+        const res = await fetch('/api/stocks', { method: 'POST', body: JSON.stringify(values), headers: { 'Content-Type': 'application/json' } });
+        if (!res.ok) throw new Error();
         toast.success('Thêm nhập kho thành công');
       } else if (mode === 'edit' && selected) {
-        res = await fetch('/api/stocks', { method: 'PUT', body: JSON.stringify({ ...values, id: selected.id }), headers: { 'Content-Type': 'application/json' } });
-        if (!res.ok) {
-          const result = await res.json().catch(() => null);
-          throw new Error(result?.error || 'Lỗi khi cập nhật nhập kho');
-        }
+        const res = await fetch('/api/stocks', { method: 'PUT', body: JSON.stringify({ ...values, id: selected.id }), headers: { 'Content-Type': 'application/json' } });
+        if (!res.ok) throw new Error();
         toast.success('Cập nhật thành công');
       } else if (mode === 'duplicate' && selected) {
-        res = await fetch('/api/stocks', { method: 'POST', body: JSON.stringify(values), headers: { 'Content-Type': 'application/json' } });
-        if (!res.ok) {
-          const result = await res.json().catch(() => null);
-          throw new Error(result?.error || 'Lỗi khi nhân đôi nhập kho');
-        }
+        const res = await fetch('/api/stocks', { method: 'POST', body: JSON.stringify(values), headers: { 'Content-Type': 'application/json' } });
+        if (!res.ok) throw new Error();
         toast.success('Nhân đôi thành công');
       }
       closeForm();
       fetchData();
-    } catch (error) {
-      toast.error((error as Error).message || 'Lỗi thao tác với kho');
+    } catch {
+      toast.error('Lỗi thao tác với kho');
     }
   };
 
@@ -153,7 +143,6 @@ export default function StocksPage() {
             giftQuantity: selected.gift_quantity ? String(selected.gift_quantity) : '',
             notes: selected.notes ?? '',
             productName: selected.product_name ?? '',
-            relatedImage: (selected as any).related_image ?? '',
           } : undefined}
           products={products}
           submitLabel={mode === 'edit' ? 'Cập nhật' : mode === 'duplicate' ? 'Nhân đôi' : 'Lưu'}

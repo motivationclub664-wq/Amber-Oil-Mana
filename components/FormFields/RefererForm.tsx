@@ -34,10 +34,9 @@ export default function RefererForm({ initialValues, submitLabel, onSubmit, onCa
   const relatedImage = watch('relatedImage');
 
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
     reset({
       name: initialValues?.name ?? '',
-      date: initialValues?.date ?? today,
+      date: initialValues?.date ?? '',
       offerRate: initialValues?.offerRate ?? '',
       notes: initialValues?.notes ?? '',
       relatedImage: initialValues?.relatedImage ?? '',

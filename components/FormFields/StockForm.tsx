@@ -40,8 +40,7 @@ export default function StockForm({ initialValues, products, submitLabel, onSubm
   const relatedImage = watch('relatedImage');
 
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    reset({ ...defaultValues, importDate: initialValues?.importDate ?? today, ...initialValues });
+    reset({ ...defaultValues, ...initialValues });
   }, [initialValues, reset]);
 
   return (
@@ -54,62 +53,21 @@ export default function StockForm({ initialValues, products, submitLabel, onSubm
         </label>
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Giá nhập</span>
-          <input
-            type="number"
-            step="1"
-            min="0"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            {...register('importPrice', {
-              min: { value: 0, message: 'Giá nhập phải là số nguyên không âm' },
-              validate: (value) => value === '' || Number.isInteger(Number(value)) || 'Giá nhập phải là số nguyên',
-            })}
-            className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900"
-          />
-          {errors.importPrice && <p className="mt-1 text-sm text-rose-600">{errors.importPrice.message}</p>}
+          <input type="number" step="0.01" {...register('importPrice')} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900" />
         </label>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Số lượng</span>
-          <input
-            type="number"
-            step="1"
-            min="0"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            {...register('quantity', {
-              min: { value: 0, message: 'Số lượng phải lớn hơn hoặc bằng 0' },
-              validate: (value) => value === '' || Number.isInteger(Number(value)) || 'Số lượng phải là số nguyên',
-            })}
-            className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900"
-          />
-          {errors.quantity && <p className="mt-1 text-sm text-rose-600">{errors.quantity.message}</p>}
+          <input type="number" {...register('quantity')} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900" />
         </label>
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Số lượng tặng</span>
-          <input
-            type="number"
-            step="1"
-            min="0"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            {...register('giftQuantity', {
-              min: { value: 0, message: 'Số lượng tặng phải lớn hơn hoặc bằng 0' },
-              validate: (value) => value === '' || Number.isInteger(Number(value)) || 'Số lượng tặng phải là số nguyên',
-            })}
-            className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900"
-          />
-          {errors.giftQuantity && <p className="mt-1 text-sm text-rose-600">{errors.giftQuantity.message}</p>}
+          <input type="number" {...register('giftQuantity')} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900" />
         </label>
       </div>
       <label className="block">
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-medium text-slate-700">Sản phẩm</span>
-          <button type="button" onClick={() => window.open('/products', '_blank')} className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800">
-            Thêm sản phẩm
-          </button>
-        </div>
+        <span className="text-sm font-medium text-slate-700">Sản phẩm</span>
         <select {...register('productName', { required: 'Sản phẩm bắt buộc' })} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900">
           <option value="">Chọn sản phẩm</option>
           {products.map((product) => (

@@ -62,8 +62,7 @@ export default function CustomerForm({ initialValues, referers, submitLabel, onS
   const [loadingLocation, setLoadingLocation] = useState(false);
 
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    reset({ ...defaultValues, date: initialValues?.date ?? today, ...initialValues });
+    reset({ ...defaultValues, ...initialValues });
   }, [initialValues, reset]);
 
   const fetchCurrentLocation = () => {
@@ -161,12 +160,7 @@ export default function CustomerForm({ initialValues, referers, submitLabel, onS
           </select>
         </label>
         <label className="block">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-medium text-slate-700">Người giới thiệu</span>
-            <button type="button" onClick={() => window.open('/referers', '_blank')} className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800">
-              Thêm referer
-            </button>
-          </div>
+          <span className="text-sm font-medium text-slate-700">Người giới thiệu</span>
           <select {...register('referer_id')} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900">
             <option value="">Không có</option>
             {referers.map((referer) => (

@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "migrate:add-order-surcharge": "node scripts/migrate_add_order_surcharge.js"
+    "lint": "next lint"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.9.0",

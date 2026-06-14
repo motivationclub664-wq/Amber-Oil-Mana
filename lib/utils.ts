@@ -4,13 +4,6 @@ export function formatCurrency(value: number | bigint | string | null | undefine
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(numberValue);
 }
 
-export function formatInteger(value: number | bigint | string | null | undefined) {
-  if (value == null || value === '') return '-';
-  const numberValue = typeof value === 'string' ? parseInt(value, 10) : Number(value);
-  if (!Number.isFinite(numberValue)) return '-';
-  return new Intl.NumberFormat('vi-VN').format(numberValue);
-}
-
 export function formatDate(date: string | Date | null | undefined) {
   if (!date) return '-';
   const d = typeof date === 'string' ? new Date(date) : date;
@@ -22,19 +15,6 @@ export function formatDateForInput(date: string | Date | null | undefined) {
   const d = typeof date === 'string' ? new Date(date) : date;
   if (Number.isNaN(d.getTime())) return '';
   return d.toISOString().slice(0, 10);
-}
-
-export function parseOptionalInt(value: unknown): number | null {
-  if (value === null || value === undefined || value === '') return null;
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) return null;
-  return parsed;
-}
-
-export function parseOptionalNumber(value: unknown): number | null {
-  if (value === null || value === undefined || value === '') return null;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function parseLocationValue(value: unknown) {

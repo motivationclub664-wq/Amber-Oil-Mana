@@ -115,7 +115,7 @@ export default function OrderForm({ initialValues, customers, referers = [], pro
 
     const total = Math.round(sumSale * (100 - discountValue) / 100);
     const referrerFee = Math.round(total * refererRate / 100);
-    const netProfit = Math.round(total - sumCost - shipCostValue -referrerFee+ surchargeValue);
+    const netProfit = Math.round(total - sumCost - shipCostValue - referrerFee + surchargeValue);
     const netProfitMargin = total ? Number((netProfit / total).toFixed(4)) : 0;
 
     return { total, referrerFee, netProfit, netProfitMargin };
@@ -141,6 +141,107 @@ export default function OrderForm({ initialValues, customers, referers = [], pro
           <input type="date" {...register('purchaseDate')} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900" />
         </label>
       </div>
+      {/* Khách hàng */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-slate-700">Khách hàng</span>
+            <button type="button" onClick={() => window.open('/customers', '_blank')} className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800">
+              Thêm khách hàng
+            </button>
+          </div>
+          <select {...register('customerId', { required: 'Khách hàng bắt buộc' })} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900">
+            <option value="">Chọn một khách hàng</option>
+            {customers.map((customer) => (
+              <option key={customer.id} value={customer.id}>{customer.name}</option>
+            ))}
+          </select>
+          {errors.customerId && <p className="mt-1 text-sm text-rose-600">{errors.customerId.message}</p>}
+        </label>
+      </div>
+      {/* Sản phẩm */}
+      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+        <div className="mb-3 text-sm font-semibold text-slate-700">Chọn Products</div>
+        <div className="space-y-3">
+          {fields.map((field, idx) => (
+            <div key={field.id} className="grid grid-cols-12 gap-2 items-center">
+              <div className="col-span-7">
+                <select {...register(`productItems.${idx}.productName` as const, { required: 'Chọn sản phẩm' })} className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900">
+                  <option value="">Chọn sản phẩm</option>
+                  {products.filter(p => p.quantity > 0).map((p) => (
+                    <option key={p.name} value={p.name} disabled={productItems.some((it, i) => i !== idx && it?.productName === p.name)}>
+                      {p.name} ({p.quantity})
+                    </option>
+                  ))}
+                </select>
+                {errors.productItems && errors.productItems[idx]?.productName && <p className="mt-1 text-sm text-rose-600">{(errors.productItems[idx] as any).productName.message}</p>}
+              </div>
+              <div className="col-span-3">
+                <input
+                  type="number"
+                  step="1"
+                  min="1"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  {...register(`productItems.${idx}.quantity` as const, {
+                    required: 'Số lượng bắt buộc',
+                    min: { value: 1, message: 'Ít nhất 1' },
+                    validate: {
+                      integer: (val) => Number.isInteger(Number(val)) || 'Số lượng phải là số nguyên',
+                      stock: (val) => {
+                        const pn = productItems[idx]?.productName;
+                        const p = products.find((pp) => pp.name === pn);
+                        if (!p) return 'Chọn sản phẩm trước';
+                        if (Number(val) > p.quantity) return `Tối đa ${p.quantity}`;
+                        return true;
+                      },
+                    },
+                  })}
+                  className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900"
+                />
+                {errors.productItems && errors.productItems[idx]?.quantity && <p className="mt-1 text-sm text-rose-600">{(errors.productItems[idx] as any).quantity.message}</p>}
+              </div>
+              <div className="col-span-2 text-right">
+                <button type="button" onClick={() => remove(idx)} className="text-sm text-rose-600">Xóa</button>
+              </div>
+            </div>
+          ))}
+
+          <div>
+            <button type="button" onClick={() => append({ productName: '', quantity: '1' })} className="rounded-full bg-slate-900 px-3 py-1 text-sm font-semibold text-white hover:bg-slate-800">Thêm sản phẩm</button>
+          </div>
+        </div>
+      </div>
+      {/* Total - Discount*/}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Total</span>
+          <input
+            type="number"
+            step="1"
+            min="0"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            readOnly
+            {...register('total', {
+              validate: (value) => value === '' || Number.isInteger(Number(value)) || 'Total phải là số nguyên',
+            })}
+            className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-100 px-3 py-2 text-slate-900"
+          />
+        </label>
+        <label className="block">
+          <span className="text-sm font-medium text-slate-700">Discount (%)</span>
+          <input
+            type="number"
+            step="0.01"
+            {...register('discount', {
+              validate: (value) => value === '' || Number.isFinite(Number(value)) || 'Discount phải là số',
+            })}
+            className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900"
+          />
+        </label>
+      </div>
+      {/* Ship cost  - Phụ phí - Lợi nhuận*/}
       <div className="grid gap-4 sm:grid-cols-3">
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Ship cost</span>
@@ -185,6 +286,8 @@ export default function OrderForm({ initialValues, customers, referers = [], pro
           />
         </label>
       </div>
+
+
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Tỷ lệ lợi nhuận</span>
@@ -212,51 +315,6 @@ export default function OrderForm({ initialValues, customers, referers = [], pro
           />
         </label>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Total</span>
-          <input
-            type="number"
-            step="1"
-            min="0"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            readOnly
-            {...register('total', {
-              validate: (value) => value === '' || Number.isInteger(Number(value)) || 'Total phải là số nguyên',
-            })}
-            className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-100 px-3 py-2 text-slate-900"
-          />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium text-slate-700">Discount (%)</span>
-          <input
-            type="number"
-            step="0.01"
-            {...register('discount', {
-              validate: (value) => value === '' || Number.isFinite(Number(value)) || 'Discount phải là số',
-            })}
-            className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900"
-          />
-        </label>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-medium text-slate-700">Khách hàng</span>
-            <button type="button" onClick={() => window.open('/customers', '_blank')} className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800">
-              Thêm khách hàng
-            </button>
-          </div>
-          <select {...register('customerId', { required: 'Khách hàng bắt buộc' })} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900">
-            <option value="">Chọn một khách hàng</option>
-            {customers.map((customer) => (
-              <option key={customer.id} value={customer.id}>{customer.name}</option>
-            ))}
-          </select>
-          {errors.customerId && <p className="mt-1 text-sm text-rose-600">{errors.customerId.message}</p>}
-        </label>
-      </div>
       <label className="block">
         <span className="text-sm font-medium text-slate-700">Ghi chú</span>
         <textarea {...register('notes')} rows={3} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900" />
@@ -265,58 +323,7 @@ export default function OrderForm({ initialValues, customers, referers = [], pro
         <input {...register('relatedImage')} />
       </div>
       <ImageUpload label="Hình ảnh đơn hàng" value={relatedImage} onChange={(value) => setValue('relatedImage', value)} />
-      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-        <div className="mb-3 text-sm font-semibold text-slate-700">Chọn Products</div>
-        <div className="space-y-3">
-          {fields.map((field, idx) => (
-            <div key={field.id} className="grid grid-cols-12 gap-2 items-center">
-              <div className="col-span-7">
-                <select {...register(`productItems.${idx}.productName` as const, { required: 'Chọn sản phẩm' })} className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900">
-                  <option value="">Chọn sản phẩm</option>
-                  {products.filter(p => p.quantity > 0).map((p) => (
-                    <option key={p.name} value={p.name} disabled={productItems.some((it, i) => i !== idx && it?.productName === p.name)}>
-                      {p.name} ({p.quantity})
-                    </option>
-                  ))}
-                </select>
-                {errors.productItems && errors.productItems[idx]?.productName && <p className="mt-1 text-sm text-rose-600">{(errors.productItems[idx] as any).productName.message}</p>}
-              </div>
-              <div className="col-span-3">
-                <input
-                type="number"
-                step="1"
-                min="1"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                {...register(`productItems.${idx}.quantity` as const, {
-                  required: 'Số lượng bắt buộc',
-                  min: { value: 1, message: 'Ít nhất 1' },
-                  validate: {
-                    integer: (val) => Number.isInteger(Number(val)) || 'Số lượng phải là số nguyên',
-                    stock: (val) => {
-                      const pn = productItems[idx]?.productName;
-                      const p = products.find((pp) => pp.name === pn);
-                      if (!p) return 'Chọn sản phẩm trước';
-                      if (Number(val) > p.quantity) return `Tối đa ${p.quantity}`;
-                      return true;
-                    },
-                  },
-                })}
-                className="w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900"
-              />
-                {errors.productItems && errors.productItems[idx]?.quantity && <p className="mt-1 text-sm text-rose-600">{(errors.productItems[idx] as any).quantity.message}</p>}
-              </div>
-              <div className="col-span-2 text-right">
-                <button type="button" onClick={() => remove(idx)} className="text-sm text-rose-600">Xóa</button>
-              </div>
-            </div>
-          ))}
-
-          <div>
-            <button type="button" onClick={() => append({ productName: '', quantity: '1' })} className="rounded-full bg-slate-900 px-3 py-1 text-sm font-semibold text-white hover:bg-slate-800">Thêm sản phẩm</button>
-          </div>
-        </div>
-      </div>
+      
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
         <button type="button" onClick={onCancel} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">Hủy</button>
         <button type="submit" className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">{submitLabel}</button>

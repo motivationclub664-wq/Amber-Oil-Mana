@@ -138,6 +138,7 @@ export default function ProductsPage() {
             name: selected.name,
             classicalName: selected.classical_name ?? '',
             netPrice: selected.net_price ? String(selected.net_price) : '',
+            salePrice: selected.sale_price ? String(selected.sale_price) : '',
             quantity: selected.quantity ? String(selected.quantity) : '',
             notes: selected.notes ?? '',
             relatedImage: (selected as any).related_image ?? '',
