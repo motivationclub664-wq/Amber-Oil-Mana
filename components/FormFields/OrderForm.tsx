@@ -121,12 +121,37 @@ export default function OrderForm({ initialValues, customers, referers = [], pro
     return { total, referrerFee, netProfit, netProfitMargin };
   }, [productItems, products, discount, shipCost, surcharge, refererRate]);
 
+  // Detect if user is modifying the form
+  const initialFormState = useMemo(() => {
+    if (!initialValues) return null;
+    return JSON.stringify({
+      productItems: initialValues.productItems ?? [],
+      discount: initialValues.discount ?? '',
+      shipCost: initialValues.shipCost ?? '',
+      surcharge: initialValues.surcharge ?? '',
+      customerId: initialValues.customerId ?? '',
+    });
+  }, [initialValues]);
+
+  const currentFormState = JSON.stringify({
+    productItems,
+    discount,
+    shipCost,
+    surcharge,
+    customerId,
+  });
+
+  const isUserModifying = initialFormState && currentFormState !== initialFormState;
+
   useEffect(() => {
-    setValue('total', String(computed.total));
-    setValue('referrerFee', String(computed.referrerFee));
-    setValue('netProfit', String(computed.netProfit));
-    setValue('netProfitMargin', String(computed.netProfitMargin));
-  }, [computed, setValue]);
+    // Only recalculate if: 1) creating new order (no initialValues), or 2) user has modified the form
+    if (!initialFormState || isUserModifying) {
+      setValue('total', String(computed.total));
+      setValue('referrerFee', String(computed.referrerFee));
+      setValue('netProfit', String(computed.netProfit));
+      setValue('netProfitMargin', String(computed.netProfitMargin));
+    }
+  }, [computed, initialFormState, isUserModifying, setValue]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
