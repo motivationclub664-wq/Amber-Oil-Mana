@@ -32,12 +32,20 @@ export async function GET(request: NextRequest) {
   if (pageParam || limitParam || search) {
     const countResult = await query(`SELECT COUNT(*) AS total FROM orders ${whereClause}`, params);
     const result = await query(`SELECT * FROM orders ${whereClause} ORDER BY order_date DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`, [...params, limit, offset]);
+    const orders = await Promise.all(result.rows.map(async (order) => ({
+      ...order,
+      productItems: await loadOrderProducts(order.id),
+    })));
     const total = Number(countResult.rows[0]?.total ?? 0);
-    return NextResponse.json({ data: result.rows, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) });
+    return NextResponse.json({ data: orders, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)) });
   }
 
   const result = await query('SELECT * FROM orders ORDER BY order_date DESC');
-  return NextResponse.json(result.rows);
+  const orders = await Promise.all(result.rows.map(async (order) => ({
+    ...order,
+    productItems: await loadOrderProducts(order.id),
+  })));
+  return NextResponse.json(orders);
 }
 
 export async function POST(request: NextRequest) {
