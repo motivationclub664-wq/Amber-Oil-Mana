@@ -12,12 +12,9 @@ type Order = {
   order_date: string;
   purchase_date?: string;
   ship_cost?: number;
-  surcharge?: number;
   net_profit?: number;
   net_profit_margin?: number;
   referrer_fee?: number;
-    total?: number;
-    discount?: number;
   notes?: string;
   customer_id?: number;
   productItems?: { productName: string; quantity: number }[];
@@ -26,8 +23,8 @@ type Order = {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<{ id: number; name: string }[]>([]);
-  const [products, setProducts] = useState<{ name: string; quantity: number; sale_price?: number | null; net_price?: number | null }[]>([]);
-  const [referers, setReferers] = useState<{ id: number; offer_rate?: number | null }[]>([]);
+  const [referers, setReferers] = useState<{ id: number; offer_rate?: number }[]>([]);
+  const [products, setProducts] = useState<{ name: string; quantity: number }[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'create' | 'edit' | 'duplicate'>('create');
@@ -41,18 +38,13 @@ export default function OrdersPage() {
     try {
       const params = new URLSearchParams({ page: String(page), limit: '10' });
       if (searchTerm) params.set('search', searchTerm);
-      const [orderRes, customerRes, productRes, refererRes] = await Promise.all([
-        fetch(`/api/orders?${params.toString()}`),
-        fetch('/api/customers'),
-        fetch('/api/products'),
-        fetch('/api/referers'),
-      ]);
+      const [orderRes, customerRes, refererRes, productRes] = await Promise.all([fetch(`/api/orders?${params.toString()}`), fetch('/api/customers'), fetch('/api/referers'), fetch('/api/products')]);
       const orderResult = await orderRes.json();
       setOrders(Array.isArray(orderResult) ? orderResult : orderResult.data);
       setTotalPages(orderResult.totalPages ?? 1);
       setCustomers(await customerRes.json());
-      setProducts(await productRes.json());
       setReferers(await refererRes.json());
+      setProducts(await productRes.json());
     } catch {
       toast.error('Không tải được dữ liệu');
     } finally {
@@ -87,26 +79,19 @@ export default function OrdersPage() {
 
   const handleSubmit = async (values: any) => {
     try {
-      let res: Response | null = null;
       if (mode === 'create' || mode === 'duplicate') {
-        res = await fetch('/api/orders', { method: 'POST', body: JSON.stringify(values), headers: { 'Content-Type': 'application/json' } });
-        if (!res.ok) {
-          const result = await res.json().catch(() => null);
-          throw new Error(result?.error || 'Lỗi khi tạo đơn hàng');
-        }
+        const res = await fetch('/api/orders', { method: 'POST', body: JSON.stringify(values), headers: { 'Content-Type': 'application/json' } });
+        if (!res.ok) throw new Error();
         toast.success(mode === 'create' ? 'Thêm đơn hàng thành công' : 'Nhân đôi đơn hàng thành công');
       } else if (mode === 'edit' && selected) {
-        res = await fetch('/api/orders', { method: 'PUT', body: JSON.stringify({ ...values, id: selected.id }), headers: { 'Content-Type': 'application/json' } });
-        if (!res.ok) {
-          const result = await res.json().catch(() => null);
-          throw new Error(result?.error || 'Lỗi khi cập nhật đơn hàng');
-        }
+        const res = await fetch('/api/orders', { method: 'PUT', body: JSON.stringify({ ...values, id: selected.id }), headers: { 'Content-Type': 'application/json' } });
+        if (!res.ok) throw new Error();
         toast.success('Cập nhật thành công');
       }
       closeForm();
       fetchData();
-    } catch (error) {
-      toast.error((error as Error).message || 'Lỗi thao tác với đơn hàng');
+    } catch {
+      toast.error('Lỗi thao tác với đơn hàng');
     }
   };
 
@@ -134,8 +119,6 @@ export default function OrdersPage() {
         columns={[
           { header: 'ID', accessor: 'id' },
           { header: 'Ngày', accessor: 'order_date' },
-          { header: 'Ship cost', accessor: 'ship_cost' },
-          { header: 'Phụ phí', accessor: 'surcharge' },
           { header: 'Lợi nhuận', accessor: (row) => row.net_profit ?? '-' },
           { header: 'Khách hàng', accessor: (row) => {
             const customer = customers.find((c) => c.id === (row as Order).customer_id);
@@ -162,29 +145,21 @@ export default function OrdersPage() {
       />
 
       <Modal open={open} title={mode === 'create' ? 'Thêm Đơn hàng' : mode === 'edit' ? 'Chỉnh sửa Đơn hàng' : 'Nhân đôi Đơn hàng'} onClose={closeForm}>
-        {/* When editing, include the ordered quantities back into the products list
-            so previously selected products remain available in the selector */}
         <OrderForm
           initialValues={selected ? {
             orderDate: formatDateForInput(selected.order_date),
             purchaseDate: formatDateForInput(selected.purchase_date),
             shipCost: selected.ship_cost ? String(selected.ship_cost) : '',
-            surcharge: selected.surcharge ? String(selected.surcharge) : '',
             netProfit: selected.net_profit ? String(selected.net_profit) : '',
             netProfitMargin: selected.net_profit_margin ? String(selected.net_profit_margin) : '',
             referrerFee: selected.referrer_fee ? String(selected.referrer_fee) : '',
-            total: selected.total ? String(selected.total) : '',
-            discount: selected.discount ? String(selected.discount) : '',
             notes: selected.notes ?? '',
             customerId: selected.customer_id ? String(selected.customer_id) : '',
             productItems: (selected.productItems ?? []).map((p) => ({ productName: p.productName, quantity: String(p.quantity) })),
           } : undefined}
           customers={customers}
           referers={referers}
-          products={mode === 'edit' && selected ? products.map((p) => {
-            const ordered = (selected.productItems ?? []).find((it) => it.productName === p.name);
-            return { ...p, quantity: p.quantity + (ordered ? ordered.quantity : 0) };
-          }) : products}
+          products={products}
           submitLabel={mode === 'edit' ? 'Cập nhật' : mode === 'duplicate' ? 'Nhân đôi' : 'Lưu'}
           onSubmit={handleSubmit}
           onCancel={closeForm}
