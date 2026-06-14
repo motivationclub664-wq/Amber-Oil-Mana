@@ -34,13 +34,10 @@ CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     order_date DATE NOT NULL,
     purchase_date DATE,
-    ship_cost INT,
-    surcharge INT,
-    total INT,
-    discount NUMERIC(5,2),
-    net_profit INT,
+    ship_cost NUMERIC(12,2),
+    net_profit NUMERIC(12,2),
     net_profit_margin NUMERIC(5,2),
-    referrer_fee INT,
+    referrer_fee NUMERIC(12,2),
     notes VARCHAR(255),
     related_image BYTEA,
     customer_id INT REFERENCES customers(id) ON DELETE CASCADE
@@ -49,8 +46,8 @@ CREATE TABLE orders (
 CREATE TABLE products (
     name VARCHAR(50) PRIMARY KEY,
     classical_name VARCHAR(50),
-    net_price INT,
-    sale_price INT,
+    net_price NUMERIC(12,2),
+    sale_price NUMERIC(12,2),
     quantity INT CHECK (quantity >= 0 AND quantity < 1000000),
     notes VARCHAR(255),
     related_image BYTEA
@@ -59,7 +56,7 @@ CREATE TABLE products (
 CREATE TABLE stocks (
     id SERIAL PRIMARY KEY,
     import_date DATE NOT NULL,
-    import_price INT,
+    import_price NUMERIC(12,2),
     quantity INT CHECK (quantity >= 0),
     gift_quantity INT CHECK (gift_quantity >= 0),
     notes VARCHAR(255),

@@ -55,54 +55,20 @@ export default function ProductForm({ initialValues, submitLabel, onSubmit, onCa
           <input type="text" {...register('classicalName')} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900" />
         </label>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Giá vốn</span>
-          <input
-            type="number"
-            step="1"
-            min="0"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            {...register('netPrice', {
-              min: { value: 0, message: 'Giá vốn phải lớn hơn hoặc bằng 0' },
-              validate: (value) => value === '' || Number.isInteger(Number(value)) || 'Giá vốn phải là số nguyên',
-            })}
-            className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900"
-          />
+          <input type="number" step="0.01" {...register('netPrice', { min: { value: 0, message: 'Giá vốn phải lớn hơn hoặc bằng 0' } })} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900" />
           {errors.netPrice && <p className="mt-1 text-sm text-rose-600">{errors.netPrice.message}</p>}
         </label>
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Giá bán</span>
-          <input
-            type="number"
-            step="1"
-            min="0"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            {...register('salePrice', {
-              min: { value: 0, message: 'Giá bán phải lớn hơn hoặc bằng 0' },
-              validate: (value) => value === '' || Number.isInteger(Number(value)) || 'Giá bán phải là số nguyên',
-            })}
-            className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900"
-          />
+          <input type="number" step="0.01" {...register('salePrice', { min: { value: 0, message: 'Giá bán phải lớn hơn hoặc bằng 0' } })} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900" />
+          {errors.salePrice && <p className="mt-1 text-sm text-rose-600">{errors.salePrice.message}</p>}
         </label>
         <label className="block">
           <span className="text-sm font-medium text-slate-700">Số lượng</span>
-          <input
-            type="number"
-            step="1"
-            min="0"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            {...register('quantity', {
-              required: 'Số lượng bắt buộc',
-              min: { value: 0, message: 'Số lượng phải lớn hơn hoặc bằng 0' },
-              max: { value: 999999, message: 'Số lượng quá lớn' },
-              validate: (value) => value === '' || Number.isInteger(Number(value)) || 'Số lượng phải là số nguyên',
-            })}
-            className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900"
-          />
+          <input type="number" {...register('quantity', { required: 'Số lượng bắt buộc', min: { value: 0, message: 'Số lượng phải lớn hơn hoặc bằng 0' }, max: { value: 999999, message: 'Số lượng quá lớn' } })} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900" />
           {errors.quantity && <p className="mt-1 text-sm text-rose-600">{errors.quantity.message}</p>}
         </label>
       </div>

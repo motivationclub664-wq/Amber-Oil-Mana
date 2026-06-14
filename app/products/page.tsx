@@ -10,6 +10,7 @@ type Product = {
   name: string;
   classical_name?: string;
   net_price?: number;
+  sale_price?: number;
   quantity?: number;
   notes?: string;
 };
@@ -68,33 +69,23 @@ export default function ProductsPage() {
 
   const handleSubmit = async (values: any) => {
     try {
-      let res: Response | null = null;
       if (mode === 'create') {
-        res = await fetch('/api/products', { method: 'POST', body: JSON.stringify(values), headers: { 'Content-Type': 'application/json' } });
-        if (!res.ok) {
-          const result = await res.json().catch(() => null);
-          throw new Error(result?.error || 'Lỗi khi thêm sản phẩm');
-        }
+        const res = await fetch('/api/products', { method: 'POST', body: JSON.stringify(values), headers: { 'Content-Type': 'application/json' } });
+        if (!res.ok) throw new Error();
         toast.success('Thêm sản phẩm thành công');
       } else if (mode === 'edit' && selected) {
-        res = await fetch('/api/products', { method: 'PUT', body: JSON.stringify({ ...values, name: selected.name }), headers: { 'Content-Type': 'application/json' } });
-        if (!res.ok) {
-          const result = await res.json().catch(() => null);
-          throw new Error(result?.error || 'Lỗi khi cập nhật sản phẩm');
-        }
+        const res = await fetch('/api/products', { method: 'PUT', body: JSON.stringify({ ...values, name: selected.name }), headers: { 'Content-Type': 'application/json' } });
+        if (!res.ok) throw new Error();
         toast.success('Cập nhật thành công');
       } else if (mode === 'duplicate' && selected) {
-        res = await fetch('/api/products', { method: 'POST', body: JSON.stringify(values), headers: { 'Content-Type': 'application/json' } });
-        if (!res.ok) {
-          const result = await res.json().catch(() => null);
-          throw new Error(result?.error || 'Lỗi khi nhân đôi sản phẩm');
-        }
+        const res = await fetch('/api/products', { method: 'POST', body: JSON.stringify(values), headers: { 'Content-Type': 'application/json' } });
+        if (!res.ok) throw new Error();
         toast.success('Nhân đôi thành công');
       }
       closeForm();
       fetchProducts();
-    } catch (error) {
-      toast.error((error as Error).message || 'Lỗi thao tác với sản phẩm');
+    } catch {
+      toast.error('Lỗi thao tác với sản phẩm');
     }
   };
 
@@ -122,8 +113,8 @@ export default function ProductsPage() {
         columns={[
           { header: 'Tên', accessor: 'name' },
           { header: 'Tên thường gọi', accessor: 'classical_name' },
-          { header: 'Giá', accessor: (row) => row.net_price ?? '-' },
-            { header: 'Giá Bán', accessor: (row) => (row as any).sale_price ?? '-' },
+          { header: 'Giá vốn', accessor: (row) => row.net_price ?? '-' },
+          { header: 'Giá bán', accessor: (row) => row.sale_price ?? '-' },
           { header: 'Số lượng', accessor: (row) => row.quantity ?? '-' },
         ]}
         data={products}
@@ -147,7 +138,6 @@ export default function ProductsPage() {
             name: selected.name,
             classicalName: selected.classical_name ?? '',
             netPrice: selected.net_price ? String(selected.net_price) : '',
-            salePrice: (selected as any).sale_price ? String((selected as any).sale_price) : '',
             quantity: selected.quantity ? String(selected.quantity) : '',
             notes: selected.notes ?? '',
             relatedImage: (selected as any).related_image ?? '',
