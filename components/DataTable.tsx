@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
+import { formatDate } from '../lib/utils';
 
 type Column<T> = {
   header: string;
