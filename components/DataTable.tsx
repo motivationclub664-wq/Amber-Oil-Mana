@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { formatDate } from '../lib/utils';
 
 type Column<T> = {
   header: string;
@@ -49,7 +48,32 @@ export default function DataTable<T extends Record<string, unknown>>(props: Data
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
+        {/* Mobile stacked cards */}
+        <div className="md:hidden space-y-3">
+          {data.map((row, rowIndex) => (
+            <div key={rowIndex} className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+              {columns.map((column, colIndex) => (
+                <div key={colIndex} className="flex justify-between py-1">
+                  <div className="text-sm text-slate-500">{column.header}</div>
+                  <div className="text-sm font-medium text-slate-700">
+                    {typeof column.accessor === 'function'
+                      ? column.accessor(row as any)
+                      : column.accessor === 'date' || column.accessor === 'import_date' || column.accessor === 'order_date' || column.accessor === 'purchase_date'
+                        ? formatDate(String(row[column.accessor] ?? ''))
+                        : String(row[column.accessor] ?? '-')}
+                  </div>
+                </div>
+              ))}
+              <div className="mt-2 flex flex-wrap gap-2">
+                {onEdit ? <button type="button" onClick={() => onEdit(row)} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200">Sửa</button> : null}
+                {onDuplicate ? <button type="button" onClick={() => onDuplicate(row)} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200">Nhân đôi</button> : null}
+                {onDelete ? <button type="button" onClick={() => onDelete(row)} className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100">Xóa</button> : null}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <table className="hidden md:table min-w-full text-left text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-slate-500">
               {columns.map((column, index) => (
@@ -74,11 +98,7 @@ export default function DataTable<T extends Record<string, unknown>>(props: Data
                 <motion.tr key={rowIndex} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: rowIndex * 0.04 }} className="group hover:bg-slate-50">
                   {columns.map((column, index) => (
                     <td key={index} className="py-3 px-3 align-top text-slate-700">
-                      {typeof column.accessor === 'function'
-                    ? column.accessor(row)
-                    : column.accessor === 'date' || column.accessor === 'import_date' || column.accessor === 'order_date' || column.accessor === 'purchase_date'
-                      ? formatDate(String(row[column.accessor] ?? ''))
-                      : String(row[column.accessor] ?? '-')}
+                      {typeof column.accessor === 'function' ? column.accessor(row) : String(row[column.accessor] ?? '-')}
                     </td>
                   ))}
                   <td className="py-3 px-3 align-top text-slate-700">
