@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import DataTable from '../../components/DataTable';
 import Modal from '../../components/Modal';
 import ProductForm from '../../components/FormFields/ProductForm';
+import { formatNumber } from '../../lib/utils';
 
 type Product = {
   name: string;
@@ -113,9 +114,9 @@ export default function ProductsPage() {
         columns={[
           { header: 'Tên', accessor: 'name' },
           { header: 'Tên thường gọi', accessor: 'classical_name' },
-          { header: 'Giá vốn', accessor: (row) => row.net_price ?? '-' },
-          { header: 'Giá bán', accessor: (row) => row.sale_price ?? '-' },
-          { header: 'Số lượng', accessor: (row) => row.quantity ?? '-' },
+              { header: 'Giá vốn', accessor: (row) => formatNumber(row.net_price ?? null) },
+          { header: 'Giá bán', accessor: (row) => formatNumber(row.sale_price ?? null) },
+          { header: 'Số lượng', accessor: (row) => formatNumber(row.quantity ?? null) },
         ]}
         data={products}
         loading={loading}

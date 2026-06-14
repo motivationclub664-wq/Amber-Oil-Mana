@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '../../../lib/db';
-import { base64ToBuffer, bufferToBase64, normalizeLocationForClient, normalizeLocationForServer } from '../../../lib/utils';
+import { base64ToBuffer, bufferToBase64, buildZaloUrl, normalizeLocationForClient, normalizeLocationForServer } from '../../../lib/utils';
 
 function serializeCustomerRow(customer: Record<string, unknown>) {
   return {
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       name,
       date,
       phone,
-      zalo,
+      buildZaloUrl(zalo),
       address,
       point,
       type,
@@ -85,7 +85,7 @@ export async function PUT(request: NextRequest) {
       name,
       date,
       phone,
-      zalo,
+      buildZaloUrl(zalo),
       address,
       point,
       type,

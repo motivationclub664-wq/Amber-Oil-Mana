@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import ImageUpload from '../ImageUpload';
 
@@ -121,37 +121,27 @@ export default function OrderForm({ initialValues, customers, referers = [], pro
     return { total, referrerFee, netProfit, netProfitMargin };
   }, [productItems, products, discount, shipCost, surcharge, refererRate]);
 
-  // Detect if user is modifying the form
-  const initialFormState = useMemo(() => {
-    if (!initialValues) return null;
-    return JSON.stringify({
-      productItems: initialValues.productItems ?? [],
-      discount: initialValues.discount ?? '',
-      shipCost: initialValues.shipCost ?? '',
-      surcharge: initialValues.surcharge ?? '',
-      customerId: initialValues.customerId ?? '',
-    });
-  }, [initialValues]);
-
-  const currentFormState = JSON.stringify({
-    productItems,
-    discount,
-    shipCost,
-    surcharge,
-    customerId,
-  });
-
-  const isUserModifying = initialFormState && currentFormState !== initialFormState;
+  // Track if this is the first render with initial values
+  const skipFirstUpdateRef = useRef(!!initialValues);
 
   useEffect(() => {
-    // Only recalculate if: 1) creating new order (no initialValues), or 2) user has modified the form
-    if (!initialFormState || isUserModifying) {
-      setValue('total', String(computed.total));
-      setValue('referrerFee', String(computed.referrerFee));
-      setValue('netProfit', String(computed.netProfit));
-      setValue('netProfitMargin', String(computed.netProfitMargin));
+    // Reset flag when initialValues change
+    skipFirstUpdateRef.current = !!initialValues;
+  }, [initialValues]);
+
+  useEffect(() => {
+    // Skip first render with existing order to preserve saved values
+    if (skipFirstUpdateRef.current && initialValues) {
+      skipFirstUpdateRef.current = false;
+      return;
     }
-  }, [computed, initialFormState, isUserModifying, setValue]);
+
+    // Update computed fields on every change after first render
+    setValue('total', String(computed.total));
+    setValue('referrerFee', String(computed.referrerFee));
+    setValue('netProfit', String(computed.netProfit));
+    setValue('netProfitMargin', String(computed.netProfitMargin));
+  }, [computed, initialValues, setValue]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

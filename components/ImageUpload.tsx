@@ -33,7 +33,7 @@ export default function ImageUpload({ value, label, onChange }: ImageUploadProps
       <label className="block text-sm font-medium text-slate-700">{label}</label>
       <div className="flex items-center gap-4">
         <input type="file" accept="image/*" onChange={handleFile} className="block w-full rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700" />
-        {preview ? <img src={preview} alt="Preview" className="h-16 w-16 rounded-2xl object-cover" /> : null}
+        {preview ? <img src={preview} alt="Preview" className="h-16 w-16 rounded-2xl object-cover transition-transform duration-200 ease-out hover:scale-110" /> : null}
       </div>
     </div>
   );

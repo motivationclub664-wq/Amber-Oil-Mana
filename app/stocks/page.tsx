@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import DataTable from '../../components/DataTable';
 import Modal from '../../components/Modal';
 import StockForm from '../../components/FormFields/StockForm';
-import { formatDateForInput } from '../../lib/utils';
+import { formatDateForInput, formatNumber } from '../../lib/utils';
 
 type Stock = {
   id: number;
@@ -115,8 +115,8 @@ export default function StocksPage() {
       <DataTable
         columns={[
           { header: 'Ngày', accessor: 'import_date' },
-          { header: 'Giá nhập', accessor: (row) => row.import_price ?? '-' },
-          { header: 'Số lượng', accessor: (row) => row.quantity ?? '-' },
+          { header: 'Giá nhập', accessor: (row) => formatNumber(row.import_price ?? null) },
+          { header: 'Số lượng', accessor: (row) => formatNumber(row.quantity ?? null) },
           { header: 'Sản phẩm', accessor: 'product_name' },
         ]}
         data={stocks}

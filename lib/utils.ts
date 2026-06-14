@@ -4,6 +4,30 @@ export function formatCurrency(value: number | bigint | string | null | undefine
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(numberValue);
 }
 
+export function formatNumber(value: number | string | null | undefined) {
+  if (value == null || value === '') return '-';
+  const numberValue = typeof value === 'string' ? Number(value.replace(/\./g, '').replace(/,/g, '')) : Number(value);
+  if (Number.isNaN(numberValue)) return '-';
+  return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(numberValue);
+}
+
+export function formatDateDisplay(date: string | Date | null | undefined) {
+  if (!date) return '-';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return '-';
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
+export function buildZaloUrl(value: string | null | undefined) {
+  if (!value) return '';
+  const digits = String(value).replace(/\D/g, '');
+  if (!digits) return '';
+  return `https://zalo.me/${digits}`;
+}
+
 export function formatDate(date: string | Date | null | undefined) {
   if (!date) return '-';
   const d = typeof date === 'string' ? new Date(date) : date;

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import DataTable from '../../components/DataTable';
 import Modal from '../../components/Modal';
 import OrderForm from '../../components/FormFields/OrderForm';
-import { formatDateForInput } from '../../lib/utils';
+import { formatDateForInput, formatNumber } from '../../lib/utils';
 
 type Order = {
   id: number;
@@ -119,7 +119,7 @@ export default function OrdersPage() {
         columns={[
           { header: 'ID', accessor: 'id' },
           { header: 'Ngày', accessor: 'order_date' },
-          { header: 'Lợi nhuận', accessor: (row) => row.net_profit ?? '-' },
+          { header: 'Lợi nhuận', accessor: (row) => formatNumber((row as Order).net_profit ?? null) },
           { header: 'Khách hàng', accessor: (row) => {
             const customer = customers.find((c) => c.id === (row as Order).customer_id);
             return customer?.name ?? '-';
