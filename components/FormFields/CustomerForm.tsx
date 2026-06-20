@@ -34,9 +34,10 @@ type CustomerFormProps = {
 const customerTypes = ['Grab', 'Be', 'Tada', 'Ahamove', 'Lalamove', 'Wholesale Customer', 'Other'];
 
 export default function CustomerForm({ initialValues, referers, submitLabel, onSubmit, onCancel }: CustomerFormProps) {
+  const today = new Date().toISOString().slice(0, 10);
   const defaultValues = {
     name: '',
-    date: '',
+    date: today,
     phone: '',
     zalo: '',
     address: '',
@@ -123,8 +124,8 @@ export default function CustomerForm({ initialValues, referers, submitLabel, onS
           <input type="text" {...register('phone')} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900" />
         </label>
         <label className="block">
-          <span className="text-sm font-medium text-slate-700">Zalo</span>
-          <input type="text" {...register('zalo', { required: 'Zalo bắt buộc' })} className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900" />
+          <span className="text-sm font-medium text-slate-700">Zalo (nhập số điện thoại)</span>
+          <input type="text" {...register('zalo', { required: 'Zalo bắt buộc' })} placeholder="Ví dụ: 0912345678" className="mt-2 w-full rounded-2xl border border-slate-200 px-3 py-2 text-slate-900" />
           {errors.zalo && <p className="mt-1 text-sm text-rose-600">{errors.zalo.message}</p>}
         </label>
       </div>
