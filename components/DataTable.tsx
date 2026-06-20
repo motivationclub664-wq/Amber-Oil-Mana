@@ -18,6 +18,7 @@ type DataTableProps<T> = {
   onEdit?: (row: T) => void;
   onDuplicate?: (row: T) => void;
   onDelete?: (row: T) => void;
+  onCustomAction?: { label: string; handler: (row: T) => void };
   searchTerm?: string;
   onSearch?: (value: string) => void;
   page?: number;
@@ -25,7 +26,7 @@ type DataTableProps<T> = {
   onPageChange?: (page: number) => void;
 };
 
-function formatCell<T extends Record<string, unknown>>(row: T, column: Column<T>) {
+function formatCell<T extends Record<string, unknown>>(row: T, column: Column<T>): ReactNode {
   if (typeof column.accessor === 'function') {
     return column.accessor(row);
   }
@@ -42,7 +43,7 @@ function formatCell<T extends Record<string, unknown>>(row: T, column: Column<T>
 }
 
 export default function DataTable<T extends Record<string, unknown>>(props: DataTableProps<T>) {
-  const { columns, data, loading, onAdd, onEdit, onDuplicate, onDelete, searchTerm, onSearch, page, totalPages, onPageChange } = props;
+  const { columns, data, loading, onAdd, onEdit, onDuplicate, onDelete, onCustomAction, searchTerm, onSearch, page, totalPages, onPageChange } = props;
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-card">
@@ -69,28 +70,16 @@ export default function DataTable<T extends Record<string, unknown>>(props: Data
         <div className="md:hidden space-y-3">
           {data.map((row, rowIndex) => (
             <div key={rowIndex} className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-              {columns.map((column, colIndex) => {
-                const value = typeof column.accessor === 'function'
-                  ? column.accessor(row as any)
-                  : row[column.accessor];
-                const isDateColumn = typeof column.accessor !== 'function' &&
-                  (column.accessor === 'date' || column.accessor === 'import_date' || column.accessor === 'order_date' || column.accessor === 'purchase_date');
-                const displayValue = typeof column.accessor === 'function'
-                  ? value
-                  : isDateColumn
-                    ? formatDateDisplay(String(value ?? ''))
-                    : String(value ?? '-');
-
-                return (
-                  <div key={colIndex} className="flex justify-between py-1">
-                    <div className="text-sm text-slate-500">{column.header}</div>
-                    <div className="text-sm font-medium text-slate-700">{displayValue}</div>
-                  </div>
-                );
-              })}
+              {columns.map((column, colIndex) => (
+                <div key={colIndex} className="flex justify-between py-1">
+                  <div className="text-sm text-slate-500">{column.header}</div>
+                  <div className="text-sm font-medium text-slate-700">{formatCell(row, column)}</div>
+                </div>
+              ))}
               <div className="mt-2 flex flex-wrap gap-2">
                 {onEdit ? <button type="button" onClick={() => onEdit(row)} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200">Sửa</button> : null}
                 {onDuplicate ? <button type="button" onClick={() => onDuplicate(row)} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200">Nhân đôi</button> : null}
+                {onCustomAction ? <button type="button" onClick={() => onCustomAction.handler(row)} className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100">{onCustomAction.label}</button> : null}
                 {onDelete ? <button type="button" onClick={() => onDelete(row)} className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100">Xóa</button> : null}
               </div>
             </div>
@@ -122,24 +111,14 @@ export default function DataTable<T extends Record<string, unknown>>(props: Data
                 <motion.tr key={rowIndex} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: rowIndex * 0.04 }} className="group hover:bg-slate-50">
                   {columns.map((column, index) => (
                     <td key={index} className="py-3 px-3 align-top text-slate-700">
-                                  {(() => {
-                        const value = typeof column.accessor === 'function'
-                          ? column.accessor(row)
-                          : row[column.accessor];
-                        const isDateColumn = typeof column.accessor !== 'function' &&
-                          (column.accessor === 'date' || column.accessor === 'import_date' || column.accessor === 'order_date' || column.accessor === 'purchase_date');
-                        return typeof column.accessor === 'function'
-                          ? value
-                          : isDateColumn
-                            ? formatDateDisplay(String(value ?? ''))
-                            : String(value ?? '-');
-                      })()}
+                      {formatCell(row, column)}
                     </td>
                   ))}
                   <td className="py-3 px-3 align-top text-slate-700">
                     <div className="flex flex-wrap gap-2">
                       {onEdit ? <button type="button" onClick={() => onEdit(row)} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200">Sửa</button> : null}
                       {onDuplicate ? <button type="button" onClick={() => onDuplicate(row)} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200">Nhân đôi</button> : null}
+                      {onCustomAction ? <button type="button" onClick={() => onCustomAction.handler(row)} className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100">{onCustomAction.label}</button> : null}
                       {onDelete ? <button type="button" onClick={() => onDelete(row)} className="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100">Xóa</button> : null}
                     </div>
                   </td>
