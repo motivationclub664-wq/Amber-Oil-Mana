@@ -20,10 +20,11 @@ type RefererFormProps = {
 };
 
 export default function RefererForm({ initialValues, submitLabel, onSubmit, onCancel }: RefererFormProps) {
+  const today = new Date().toISOString().slice(0, 10);
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<RefererFormValues>({
     defaultValues: {
       name: '',
-      date: '',
+      date: today,
       offerRate: '',
       notes: '',
       relatedImage: '',
@@ -36,7 +37,7 @@ export default function RefererForm({ initialValues, submitLabel, onSubmit, onCa
   useEffect(() => {
     reset({
       name: initialValues?.name ?? '',
-      date: initialValues?.date ?? '',
+      date: initialValues?.date ?? today,
       offerRate: initialValues?.offerRate ?? '',
       notes: initialValues?.notes ?? '',
       relatedImage: initialValues?.relatedImage ?? '',

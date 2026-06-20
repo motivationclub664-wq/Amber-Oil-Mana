@@ -113,7 +113,6 @@ export default function ProductsPage() {
       <DataTable
         columns={[
           { header: 'Tên', accessor: 'name' },
-          { header: 'Tên thường gọi', accessor: 'classical_name' },
               { header: 'Giá vốn', accessor: (row) => formatNumber(row.net_price ?? null) },
           { header: 'Giá bán', accessor: (row) => formatNumber(row.sale_price ?? null) },
           { header: 'Số lượng', accessor: (row) => formatNumber(row.quantity ?? null) },

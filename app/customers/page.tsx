@@ -36,6 +36,8 @@ export default function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [orderPopupOpen, setOrderPopupOpen] = useState(false);
+  const [orderPopupCustomer, setOrderPopupCustomer] = useState<Customer | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -77,6 +79,16 @@ export default function CustomersPage() {
   const closeForm = () => {
     setOpen(false);
     setSelected(null);
+  };
+
+  const handleLenDon = (customer: Customer) => {
+    setOrderPopupCustomer(customer);
+    setOrderPopupOpen(true);
+  };
+
+  const closeOrderPopup = () => {
+    setOrderPopupOpen(false);
+    setOrderPopupCustomer(null);
   };
 
   const handleSubmit = async (values: any) => {
@@ -124,10 +136,9 @@ export default function CustomersPage() {
       <DataTable
         columns={[
           { header: 'Tên', accessor: 'name' },
-          { header: 'Zalo', accessor: 'zalo' },
           { header: 'Phone', accessor: 'phone' },
-          { header: 'Ngày', accessor: 'date' },
-          { header: 'Loại', accessor: 'type' },
+          { header: 'Address', accessor: 'address' },
+          { header: 'Ghi chú', accessor: 'notes' },
         ]}
         data={customers}
         loading={loading}
@@ -141,6 +152,7 @@ export default function CustomersPage() {
         onPageChange={setPage}
         onEdit={(row) => openForm('edit', row as Customer)}
         onDuplicate={(row) => openForm('duplicate', row as Customer)}
+        onCustomAction={{ label: 'Lên Đơn', handler: (row) => handleLenDon(row as Customer) }}
         onDelete={(row) => handleDelete(row as Customer)}
       />
 
@@ -166,6 +178,32 @@ export default function CustomersPage() {
           onSubmit={handleSubmit}
           onCancel={closeForm}
         />
+      </Modal>
+
+      {/* Order Popup Modal */}
+      <Modal open={orderPopupOpen} title="Lên Đơn" onClose={closeOrderPopup}>
+        <div className="space-y-3">
+          <div className="rounded-2xl bg-slate-50 p-4 space-y-2 font-mono text-sm">
+            <p>Điện thoại {orderPopupCustomer?.phone || '-'}</p>
+            <p>Tới {orderPopupCustomer?.name || '-'}</p>
+            <p>Địa chỉ {orderPopupCustomer?.address || '-'}</p>
+            <p>Hàng hóa Keo Sữa Xịt Tóc</p>
+            <p>Giá trị 0đ</p>
+            <p>Khối lượng 1000g</p>
+            <p>Thu hộ 0đ</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const text = `Điện thoại ${orderPopupCustomer?.phone || '-'}\nTới ${orderPopupCustomer?.name || '-'}\nĐịa chỉ ${orderPopupCustomer?.address || '-'}\nHàng hóa Keo Sữa Xịt Tóc\nGiá trị 0đ\nKhối lượng 1000g\nThu hộ 0đ`;
+              navigator.clipboard.writeText(text);
+              toast.success('Đã sao chép nội dung');
+            }}
+            className="w-full rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+          >
+            Sao chép
+          </button>
+        </div>
       </Modal>
     </div>
   );

@@ -50,6 +50,13 @@ export async function POST(request: NextRequest) {
     // Update product quantity
     await client.query('UPDATE products SET quantity = quantity + $1 WHERE name = $2', [addQty, productName]);
 
+    // Calculate and update net_price (Giá Vốn)
+    const importPriceNum = Number(importPrice || 0);
+    if (addQty > 0) {
+      const costPrice = Math.round(importPriceNum / addQty);
+      await client.query('UPDATE products SET net_price = $1 WHERE name = $2', [costPrice, productName]);
+    }
+
     // Insert stock record
     const insertRes = await client.query(
       'INSERT INTO stocks (import_date, import_price, quantity, gift_quantity, notes, related_image, product_name) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',

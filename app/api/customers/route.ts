@@ -43,30 +43,57 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const { name, date, phone, zalo, address, location, type, notes, relatedImage1, relatedImage2, relatedImage3, relatedImage4, referer_id } = body;
-  const point = normalizeLocationForServer(location);
+  try {
+    const body = await request.json();
+    const { name, date, phone, zalo, address, location, type, notes, relatedImage1, relatedImage2, relatedImage3, relatedImage4, referer_id } = body;
+    const point = normalizeLocationForServer(location);
 
-  const result = await query(
-    'INSERT INTO customers (name, date, phone, zalo, address, location, type, notes, related_image1, related_image2, related_image3, related_image4, referer_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
-    [
-      name,
-      date,
-      phone,
-      buildZaloUrl(zalo),
-      address,
-      point,
-      type,
-      notes,
-      relatedImage1 ? base64ToBuffer(relatedImage1) : null,
-      relatedImage2 ? base64ToBuffer(relatedImage2) : null,
-      relatedImage3 ? base64ToBuffer(relatedImage3) : null,
-      relatedImage4 ? base64ToBuffer(relatedImage4) : null,
-      referer_id ? Number(referer_id) : null,
-    ]
-  );
+    // Add customer name suffix with yymm_xxx format
+    // Parse date string (format: YYYY-MM-DD) without timezone issues
+    const [year, month, day] = date.split('-').map(Number);
+    const yy = String(year).slice(-2);
+    const mm = String(month).padStart(2, '0');
+    const yyyymm = `${yy}${mm}`;
 
-  return NextResponse.json(result.rows[0], { status: 201 });
+    // Count customers created in the same month
+    const monthStart = `${year}-${String(month).padStart(2, '0')}-01`;
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const nextYear = month === 12 ? year + 1 : year;
+    const monthEnd = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+    
+    const countResult = await query('SELECT COUNT(*) AS count FROM customers WHERE date >= $1 AND date < $2', [
+      monthStart,
+      monthEnd,
+    ]);
+    const count = Number(countResult.rows[0]?.count ?? 0) + 1;
+    const xxx = String(count).padStart(3, '0');
+
+    const finalName = `${name}_${yyyymm}_${xxx}`;
+
+    const result = await query(
+      'INSERT INTO customers (name, date, phone, zalo, address, location, type, notes, related_image1, related_image2, related_image3, related_image4, referer_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
+      [
+        finalName,
+        date,
+        phone,
+        buildZaloUrl(zalo),
+        address,
+        point,
+        type,
+        notes,
+        relatedImage1 ? base64ToBuffer(relatedImage1) : null,
+        relatedImage2 ? base64ToBuffer(relatedImage2) : null,
+        relatedImage3 ? base64ToBuffer(relatedImage3) : null,
+        relatedImage4 ? base64ToBuffer(relatedImage4) : null,
+        referer_id ? Number(referer_id) : null,
+      ]
+    );
+
+    return NextResponse.json(result.rows[0], { status: 201 });
+  } catch (error) {
+    console.error('Customer POST error:', error);
+    return NextResponse.json({ error: (error as Error).message || 'Error creating customer' }, { status: 500 });
+  }
 }
 
 export async function PUT(request: NextRequest) {
