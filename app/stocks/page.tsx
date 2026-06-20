@@ -138,9 +138,9 @@ export default function StocksPage() {
         <StockForm
           initialValues={selected ? {
             importDate: formatDateForInput(selected.import_date),
-            importPrice: selected.import_price ? String(selected.import_price) : '',
-            quantity: selected.quantity ? String(selected.quantity) : '',
-            giftQuantity: selected.gift_quantity ? String(selected.gift_quantity) : '',
+            importPrice: selected.import_price != null ? String(selected.import_price) : '',
+            quantity: selected.quantity != null ? String(selected.quantity) : '',
+            giftQuantity: selected.gift_quantity != null ? String(selected.gift_quantity) : '',
             notes: selected.notes ?? '',
             productName: selected.product_name ?? '',
           } : undefined}

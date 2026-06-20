@@ -12,6 +12,8 @@ type Order = {
   order_date: string;
   purchase_date?: string;
   ship_cost?: number;
+  surcharge?: number;
+  discount?: number;
   net_profit?: number;
   net_profit_margin?: number;
   referrer_fee?: number;
@@ -149,12 +151,14 @@ export default function OrdersPage() {
           initialValues={selected ? {
             orderDate: formatDateForInput(selected.order_date),
             purchaseDate: formatDateForInput(selected.purchase_date),
-            shipCost: selected.ship_cost ? String(selected.ship_cost) : '',
-            netProfit: selected.net_profit ? String(selected.net_profit) : '',
-            netProfitMargin: selected.net_profit_margin ? String(selected.net_profit_margin) : '',
-            referrerFee: selected.referrer_fee ? String(selected.referrer_fee) : '',
+            shipCost: selected.ship_cost != null ? String(selected.ship_cost) : '',
+            surcharge: selected.surcharge != null ? String(selected.surcharge) : '',
+            discount: selected.discount != null ? String(selected.discount) : '',
+            netProfit: selected.net_profit != null ? String(selected.net_profit) : '',
+            netProfitMargin: selected.net_profit_margin != null ? String(selected.net_profit_margin) : '',
+            referrerFee: selected.referrer_fee != null ? String(selected.referrer_fee) : '',
             notes: selected.notes ?? '',
-            customerId: selected.customer_id ? String(selected.customer_id) : '',
+            customerId: selected.customer_id != null ? String(selected.customer_id) : '',
             productItems: (selected.productItems ?? []).map((p) => ({ productName: p.productName, quantity: String(p.quantity) })),
           } : undefined}
           customers={customers}

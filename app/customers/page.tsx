@@ -171,7 +171,7 @@ export default function CustomersPage() {
             relatedImage2: (selected as any).related_image2 ?? '',
             relatedImage3: (selected as any).related_image3 ?? '',
             relatedImage4: (selected as any).related_image4 ?? '',
-            referer_id: selected.referer_id ? String(selected.referer_id) : '',
+            referer_id: selected.referer_id != null ? String(selected.referer_id) : '',
           } : undefined}
           referers={referers}
           submitLabel={mode === 'edit' ? 'Cập nhật' : mode === 'duplicate' ? 'Nhân đôi' : 'Lưu'}

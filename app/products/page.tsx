@@ -137,9 +137,9 @@ export default function ProductsPage() {
           initialValues={selected ? {
             name: selected.name,
             classicalName: selected.classical_name ?? '',
-            netPrice: selected.net_price ? String(selected.net_price) : '',
-            salePrice: selected.sale_price ? String(selected.sale_price) : '',
-            quantity: selected.quantity ? String(selected.quantity) : '',
+            netPrice: selected.net_price != null ? String(selected.net_price) : '',
+            salePrice: selected.sale_price != null ? String(selected.sale_price) : '',
+            quantity: selected.quantity != null ? String(selected.quantity) : '',
             notes: selected.notes ?? '',
             relatedImage: (selected as any).related_image ?? '',
           } : undefined}

@@ -8,6 +8,14 @@ async function loadOrderProducts(orderId: number) {
   return result.rows.map((r) => ({ productName: r.product_name, quantity: r.quantity }));
 }
 
+function serializeOrderRow(order: Record<string, unknown>) {
+  const { surcharge_fee, ...rest } = order;
+  return {
+    ...rest,
+    surcharge: surcharge_fee ?? null,
+  };
+}
+
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const id = url.searchParams.get('id');
@@ -19,8 +27,9 @@ export async function GET(request: NextRequest) {
     const result = await query('SELECT * FROM orders WHERE id = $1', [Number(id)]);
     const order = result.rows[0];
     if (!order) return NextResponse.json(null);
-    order.productItems = await loadOrderProducts(Number(id));
-    return NextResponse.json(order);
+    const serializedOrder = serializeOrderRow(order);
+    serializedOrder.productItems = await loadOrderProducts(Number(id));
+    return NextResponse.json(serializedOrder);
   }
 
   const page = pageParam ? Math.max(1, Number(pageParam) || 1) : 1;
@@ -33,7 +42,7 @@ export async function GET(request: NextRequest) {
     const countResult = await query(`SELECT COUNT(*) AS total FROM orders ${whereClause}`, params);
     const result = await query(`SELECT * FROM orders ${whereClause} ORDER BY order_date DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`, [...params, limit, offset]);
     const orders = await Promise.all(result.rows.map(async (order) => ({
-      ...order,
+      ...serializeOrderRow(order),
       productItems: await loadOrderProducts(order.id),
     })));
     const total = Number(countResult.rows[0]?.total ?? 0);
@@ -42,7 +51,7 @@ export async function GET(request: NextRequest) {
 
   const result = await query('SELECT * FROM orders ORDER BY order_date DESC');
   const orders = await Promise.all(result.rows.map(async (order) => ({
-    ...order,
+    ...serializeOrderRow(order),
     productItems: await loadOrderProducts(order.id),
   })));
   return NextResponse.json(orders);
@@ -50,7 +59,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { orderDate, purchaseDate, shipCost, netProfit, netProfitMargin, referrerFee, notes, relatedImage, customerId, productItems } = body;
+  const { orderDate, purchaseDate, shipCost, netProfit, netProfitMargin, referrerFee, notes, relatedImage, customerId, productItems, discount, surcharge } = body;
 
   if (!Array.isArray(productItems)) return NextResponse.json({ error: 'Missing productItems' }, { status: 400 });
 
@@ -58,8 +67,20 @@ export async function POST(request: NextRequest) {
   try {
     await client.query('BEGIN');
     const res = await client.query(
-      'INSERT INTO orders (order_date, purchase_date, ship_cost, net_profit, net_profit_margin, referrer_fee, notes, related_image, customer_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
-      [orderDate, purchaseDate, shipCost, netProfit, netProfitMargin, referrerFee, notes, relatedImage ? convertBase64(relatedImage) : null, Number(customerId)]
+      'INSERT INTO orders (order_date, purchase_date, ship_cost, net_profit, net_profit_margin, referrer_fee, surcharge_fee, discount, notes, related_image, customer_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id',
+      [
+        orderDate,
+        purchaseDate,
+        shipCost !== undefined && shipCost !== '' ? Number(shipCost) : null,
+        netProfit !== undefined && netProfit !== '' ? Number(netProfit) : null,
+        netProfitMargin !== undefined && netProfitMargin !== '' ? Number(netProfitMargin) : null,
+        referrerFee !== undefined && referrerFee !== '' ? Number(referrerFee) : null,
+        surcharge !== undefined && surcharge !== '' ? Number(surcharge) : null,
+        discount !== undefined && discount !== '' ? Number(discount) : null,
+        notes,
+        relatedImage ? convertBase64(relatedImage) : null,
+        Number(customerId),
+      ]
     );
 
     const orderId = res.rows[0].id;
@@ -93,7 +114,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   const body = await request.json();
-  const { id, orderDate, purchaseDate, shipCost, netProfit, netProfitMargin, referrerFee, notes, relatedImage, customerId, productItems } = body;
+  const { id, orderDate, purchaseDate, shipCost, netProfit, netProfitMargin, referrerFee, notes, relatedImage, customerId, productItems, discount, surcharge } = body;
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
   if (!Array.isArray(productItems)) return NextResponse.json({ error: 'Missing productItems' }, { status: 400 });
 
@@ -132,8 +153,21 @@ export async function PUT(request: NextRequest) {
     }
 
     // update order fields
-    await client.query('UPDATE orders SET order_date = $1, purchase_date = $2, ship_cost = $3, net_profit = $4, net_profit_margin = $5, referrer_fee = $6, notes = $7, related_image = $8, customer_id = $9 WHERE id = $10',
-      [orderDate, purchaseDate, shipCost, netProfit, netProfitMargin, referrerFee, notes, relatedImage ? convertBase64(relatedImage) : existing.rows[0].related_image, Number(customerId), Number(id)]);
+    await client.query('UPDATE orders SET order_date = $1, purchase_date = $2, ship_cost = $3, net_profit = $4, net_profit_margin = $5, referrer_fee = $6, surcharge_fee = $7, discount = $8, notes = $9, related_image = $10, customer_id = $11 WHERE id = $12',
+      [
+        orderDate,
+        purchaseDate,
+        shipCost !== undefined && shipCost !== '' ? Number(shipCost) : null,
+        netProfit !== undefined && netProfit !== '' ? Number(netProfit) : null,
+        netProfitMargin !== undefined && netProfitMargin !== '' ? Number(netProfitMargin) : null,
+        referrerFee !== undefined && referrerFee !== '' ? Number(referrerFee) : null,
+        surcharge !== undefined && surcharge !== '' ? Number(surcharge) : null,
+        discount !== undefined && discount !== '' ? Number(discount) : null,
+        notes,
+        relatedImage ? convertBase64(relatedImage) : existing.rows[0].related_image,
+        Number(customerId),
+        Number(id),
+      ]);
 
     await client.query('COMMIT');
     return NextResponse.json({ success: true });
@@ -182,8 +216,20 @@ export async function PATCH(request: NextRequest) {
   try {
     await client.query('BEGIN');
     const res = await client.query(
-      'INSERT INTO orders (order_date, purchase_date, ship_cost, net_profit, net_profit_margin, referrer_fee, notes, related_image, customer_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
-      [order.order_date, order.purchase_date, order.ship_cost, order.net_profit, order.net_profit_margin, order.referrer_fee, order.notes, order.related_image, order.customer_id]
+      'INSERT INTO orders (order_date, purchase_date, ship_cost, net_profit, net_profit_margin, referrer_fee, surcharge_fee, discount, notes, related_image, customer_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id',
+      [
+        order.order_date,
+        order.purchase_date,
+        order.ship_cost,
+        order.net_profit,
+        order.net_profit_margin,
+        order.referrer_fee,
+        order.surcharge_fee,
+        order.discount,
+        order.notes,
+        order.related_image,
+        order.customer_id,
+      ]
     );
     const newId = res.rows[0].id;
     const items = await loadOrderProducts(Number(id));
