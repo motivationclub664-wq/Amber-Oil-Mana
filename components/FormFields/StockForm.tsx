@@ -23,8 +23,9 @@ type StockFormProps = {
 };
 
 export default function StockForm({ initialValues, products, submitLabel, onSubmit, onCancel }: StockFormProps) {
+  const today = new Date().toISOString().slice(0, 10);
   const defaultValues = {
-    importDate: '',
+    importDate: today,
     importPrice: '',
     quantity: '',
     giftQuantity: '',
